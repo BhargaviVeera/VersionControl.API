@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Version190925.API.Models.Domain;
-using Version190925.API.Repositories.Interfaces;
+using System;
+using Versions.API.Models.Domain;             // ✅ use shared model
+using Versions.API.Repositories.Interfaces;
 
 namespace Version190925.API.Controllers
 {
@@ -8,30 +9,38 @@ namespace Version190925.API.Controllers
     [Route("api/v190925/[controller]")]
     public class RegionsController : ControllerBase
     {
-        private readonly IExtendedRegionRepository _regionRepository;
+        private readonly IRegionRepository _repository;
 
-        public RegionsController(IExtendedRegionRepository regionRepository)
+        public RegionsController(IRegionRepository repository)
         {
-            _regionRepository = regionRepository;
+            _repository = repository;
         }
 
         [HttpGet]
-        public IActionResult GetAll() => Ok(_regionRepository.GetAllRegions());
+        public IActionResult GetAll() => Ok(_repository.GetAll());
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public IActionResult GetById(Guid id) => Ok(_repository.GetById(id));
+
+        [HttpPost]
+        public IActionResult Create([FromBody] Region region)
         {
-            var region = _regionRepository.GetRegionById(id);
-            if (region == null) return NotFound();
-            return Ok(region);
+            _repository.Create(region);
+            return CreatedAtAction(nameof(GetById), new { id = region.Id }, region);
         }
 
-        [HttpGet("code/{code}")]
-        public IActionResult GetByCode(string code)
+        [HttpPut("{id}")]
+        public IActionResult Update(Guid id, [FromBody] Region region)
         {
-            var region = _regionRepository.GetRegionByCode(code);
-            if (region == null) return NotFound();
-            return Ok(region);
+            _repository.Update(id, region);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(Guid id)
+        {
+            _repository.Delete(id);
+            return NoContent();
         }
     }
 }

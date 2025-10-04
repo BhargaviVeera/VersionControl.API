@@ -1,39 +1,38 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Version190925.API.Repositories.Interfaces;
-using Version190925.API.Repositories.Version190925;
-using Version210926.API.Repositories.Interfaces;
-using Version210926.API.Repositories.Version210926;
-
+using Versions.API.Repositories.Interfaces;
+using Versions.API.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add controllers
+// Add services to the container.
 builder.Services.AddControllers();
 
-builder.Services.AddSingleton<Version210926.API.Repositories.Interfaces.IRegionRepository, Version210926.API.Repositories.Version210926.RegionRepository>();
+// Register the shared RegionRepository for IRegionRepository
+builder.Services.AddSingleton<IRegionRepository, RegionRepository>();
 
-builder.Services.AddSingleton<Version190925.API.Repositories.Interfaces.IExtendedRegionRepository, Version190925.API.Repositories.Version190925.RegionRepository>();
-
-// Swagger/OpenAPI
+// Add Swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Swagger in Development
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        // Optionally, you can set the route prefix for Swagger UI
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Versioned API v1");
+    });
 }
 
-// Middleware
 app.UseHttpsRedirection();
+
 app.UseAuthorization();
 
-// Map controllers
 app.MapControllers();
 
 app.Run();

@@ -1,25 +1,47 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Version210926.API.Models.Domain;
-using Version210926.API.Repositories.Version210926; // make sure namespace matches
-using Version210926.API.Repositories.Interfaces;
+﻿// Version210926.API/Controllers/RegionsController.cs
+using Microsoft.AspNetCore.Mvc;
+using System;
+using Versions.API.Models.Domain;
+using Versions.API.Repositories.Interfaces;
 
 namespace Version210926.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/v210926/[controller]")]
     public class RegionsController : ControllerBase
     {
-        private readonly IRegionRepository _regionRepository;
+        private readonly IRegionRepository _repository;
 
-        public RegionsController()
+        public RegionsController(IRegionRepository repository)
         {
-            _regionRepository = new RegionRepository();
+            _repository = repository;
         }
 
         [HttpGet]
-        public async Task<IEnumerable<Region>> Get()
+        public IActionResult GetAll() => Ok(_repository.GetAll());
+
+        [HttpGet("{id}")]
+        public IActionResult GetById(Guid id) => Ok(_repository.GetById(id));
+
+        [HttpPost]
+        public IActionResult Create([FromBody] Region region)
         {
-            return await _regionRepository.GetAllAsync();
+            _repository.Create(region);
+            return CreatedAtAction(nameof(GetById), new { id = region.Id }, region);
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult Update(Guid id, [FromBody] Region region)
+        {
+            _repository.Update(id, region);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(Guid id)
+        {
+            _repository.Delete(id);
+            return NoContent();
         }
     }
 }
